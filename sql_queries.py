@@ -26,24 +26,24 @@ time_table_drop = "DROP TABLE IF EXISTS dim_time;"
 staging_events_table_create = """
     CREATE TABLE IF NOT EXISTS staging_events
     (
-        artist             VARCHAR,
-        auth               VARCHAR,
-        firstName          VARCHAR,
-        gender             VARCHAR,
-        itemInSession      INTEGER,
-        lastName           VARCHAR,
+        artist             VARCHAR(250),
+        auth               VARCHAR(12),
+        first_name         VARCHAR(50),
+        gender             VARCHAR(1),
+        item_in_session    INTEGER,
+        last_name          VARCHAR(50),
         length             FLOAT,
-        level              VARCHAR,
-        location           VARCHAR,
-        method             VARCHAR,
-        page               VARCHAR,
+        level              VARCHAR(4),
+        location           VARCHAR(250),
+        method             VARCHAR(5),
+        page               VARCHAR(10),
         registration       BIGINT,
-        sessionId          INTEGER,
-        song               VARCHAR,
+        session_id         INTEGER,
+        song               VARCHAR(250),
         status             INTEGER,
         ts                 TIMESTAMP,
-        userAgent          VARCHAR,
-        userId             INTEGER
+        user_agent         VARCHAR(500),
+        user_id            INTEGER
     );
 """
 
@@ -51,13 +51,13 @@ staging_songs_table_create = """
     CREATE TABLE IF NOT EXISTS staging_songs
     (
         num_songs          INTEGER,
-        artist_id          VARCHAR,
+        artist_id          VARCHAR(20),
         artist_latitude    FLOAT,
         artist_longitude   FLOAT,
-        artist_location    VARCHAR,
-        artist_name        VARCHAR,
-        song_id            VARCHAR,
-        title              VARCHAR,
+        artist_location    VARCHAR(250),
+        artist_name        VARCHAR(250),
+        song_id            VARCHAR(20),
+        title              VARCHAR(250),
         duration           FLOAT,
         year               INTEGER
     );
@@ -66,61 +66,61 @@ staging_songs_table_create = """
 songplay_table_create = """
     CREATE TABLE IF NOT EXISTS fact_songplays
     (
-        songplay_id        int IDENTITY(1, 1) PRIMARY KEY,
-        start_time         timestamp,
-        user_id            int,
-        level              varchar,
-        song_id            varchar,
-        artist_id          varchar,
-        session_id         int,
-        location           varchar,
-        user_agent         varchar
+        songplay_id        INT IDENTITY(1, 1) PRIMARY KEY,
+        start_time         TIMESTAMP NOT NULL,
+        user_id            INT NOT NULL,
+        level              VARCHAR(4),
+        song_id            VARCHAR(20) NOT NULL,
+        artist_id          VARCHAR(20) NOT NULL,
+        session_id         INT,
+        location           VARCHAR(250),
+        user_agent         VARCHAR(500)
     );
 """
 
 user_table_create = """
     CREATE TABLE IF NOT EXISTS dim_users
     (
-        user_id            int PRIMARY KEY,
-        first_name         varchar,
-        last_name          varchar,
-        gender             varchar,
-        level              varchar
+        user_id            INT PRIMARY KEY,
+        first_name         VARCHAR(50) NOT NULL,
+        last_name          VARCHAR(50),
+        gender             VARCHAR(1),
+        level              VARCHAR(4)
     );
 """
 
 song_table_create = """
     CREATE TABLE IF NOT EXISTS dim_songs
     (
-        song_id            varchar PRIMARY KEY,
-        title              varchar,
-        artist_id          varchar,
-        year               int,
-        duration           float
+        song_id            VARCHAR(20) PRIMARY KEY,
+        title              VARCHAR(250) NOT NULL,
+        artist_id          VARCHAR(20) NOT NULL,
+        year               INT,
+        duration           FLOAT
     );
 """
 
 artist_table_create = """
     CREATE TABLE IF NOT EXISTS dim_artists
     (
-        artist_id          varchar PRIMARY KEY,
-        name               varchar,
-        location           varchar,
-        latitude           float,
-        longitude          float
+        artist_id          VARCHAR(20) PRIMARY KEY,
+        name               VARCHAR(250) NOT NULL,
+        location           VARCHAR(250),
+        latitude           FLOAT,
+        longitude          FLOAT
     );
 """
 
 time_table_create = """
     CREATE TABLE IF NOT EXISTS dim_time
     (
-        start_time         timestamp PRIMARY KEY,
-        hour               int,
-        day                int,
-        week               int,
-        month              int,
-        year               int,
-        weekday            int
+        start_time         TIMESTAMP PRIMARY KEY,
+        hour               INT NOT NULL,
+        day                INT NOT NULL,
+        week               INT NOT NULL,
+        month              INT NOT NULL,
+        year               INT NOT NULL,
+        weekday            INT NOT NULL
     );
 """
 
@@ -148,9 +148,9 @@ staging_songs_copy = """
 songplay_table_insert = """
     INSERT INTO fact_songplays (start_time, user_id, level, song_id,
                                 artist_id, session_id, location, user_agent)
-    SELECT DISTINCT e.ts AS start_time, e.userId AS user_id, e.level,
-                    s.song_id, s.artist_id, e.sessionId AS session_id,
-                    e.location, e.userAgent AS user_agent
+    SELECT DISTINCT e.ts AS start_time, e.user_id, e.level,
+                    s.song_id, s.artist_id, e.session_id,
+                    e.location, e.user_agent
     FROM staging_events AS e
     LEFT JOIN staging_songs AS s
     ON e.song = s.title AND e.artist = s.artist_name
@@ -159,10 +159,9 @@ songplay_table_insert = """
 
 user_table_insert = """
     INSERT INTO dim_users (user_id, first_name, last_name, gender, level)
-    SELECT DISTINCT userId AS user_id, firstName AS first_name,
-                    lastName AS last_name, gender, level
+    SELECT DISTINCT user_id, first_name, last_name, gender, level
     FROM staging_events
-    WHERE userId IS NOT NULL AND page = 'NextSong';
+    WHERE user_id IS NOT NULL AND page = 'NextSong';
 """
 
 song_table_insert = """
@@ -196,7 +195,7 @@ time_table_insert = """
 """
 
 
-# SQL queries for checking the number records inserted to each table
+# SQL queries for checking the number of records inserted to each table
 staging_events_table_count = "SELECT COUNT(*) FROM staging_events;"
 staging_songs_table_count = "SELECT COUNT(*) FROM staging_songs;"
 songplay_table_count = "SELECT COUNT(*) FROM fact_songplays;"
